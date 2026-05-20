@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/d1xer111/water-transport-rental/auth-service/internal/database"
 	"github.com/d1xer111/water-transport-rental/auth-service/internal/handler"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/gin-contrib/cors"
 )
 
 func main() {
@@ -20,10 +22,15 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
+	log.Println("DB_HOST =", os.Getenv("DB_HOST"))
+	log.Println("DB_PORT =", os.Getenv("DB_PORT"))
+	log.Println("DB_USER =", os.Getenv("DB_USER"))
+	log.Println("DB_NAME =", os.Getenv("DB_NAME"))
+
 	conn, err := database.ConnectDB()
 
 	if err != nil {
-		log.Fatal("Database connection failed")
+		log.Fatal(err)
 	}
 
 	defer conn.Close(nil)
@@ -36,6 +43,12 @@ func main() {
 
 	r := gin.Default()
 
+	r.Use(cors.New(cors.Config{
+    AllowOrigins: []string{"http://localhost:5173"},
+    AllowMethods: []string{"GET", "POST", "PUT", "DELETE"},
+    AllowHeaders: []string{"Origin", "Content-Type", "Authorization"},
+}))
+
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",
@@ -47,20 +60,20 @@ func main() {
 		auth.POST("/register", authHandler.Register)
 		auth.POST("/login", authHandler.Login)
 	}
-	
-	protected := r.Group("/api")
-protected.Use(middleware.AuthMiddleware())
-{
-	protected.GET("/profile", func(c *gin.Context) {
-		userID, _ := c.Get("user_id")
-		role, _ := c.Get("role")
 
-		c.JSON(200, gin.H{
-			"user_id": userID,
-			"role":    role,
+	protected := r.Group("/api")
+	protected.Use(middleware.AuthMiddleware())
+	{
+		protected.GET("/profile", func(c *gin.Context) {
+			userID, _ := c.Get("user_id")
+			role, _ := c.Get("role")
+
+			c.JSON(200, gin.H{
+				"user_id": userID,
+				"role":    role,
+			})
 		})
-	})
-}
+	}
 
 	r.Run(":8080")
 }

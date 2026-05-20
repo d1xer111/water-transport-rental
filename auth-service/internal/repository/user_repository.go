@@ -4,61 +4,57 @@ import (
 	"context"
 
 	"github.com/d1xer111/water-transport-rental/auth-service/internal/model"
-
 	"github.com/jackc/pgx/v5"
 )
 
 type UserRepository struct {
-	DB *pgx.Conn
+	conn *pgx.Conn
 }
 
-func NewUserRepository(db *pgx.Conn) *UserRepository {
+func NewUserRepository(conn *pgx.Conn) *UserRepository {
 	return &UserRepository{
-		DB: db,
+		conn: conn,
 	}
 }
 
 func (r *UserRepository) CreateUser(user model.User) error {
 	query := `
-		INSERT INTO users (email, password_hash, role)
-		VALUES ($1, $2, $3)
+		INSERT INTO users (username, email, password, role)
+		VALUES ($1, $2, $3, $4)
 	`
 
-	_, err := r.DB.Exec(
+	_, err := r.conn.Exec(
 		context.Background(),
 		query,
+		user.Username,
 		user.Email,
-		user.PasswordHash,
-		user.Role,
+		user.Password,
+		"user",
 	)
 
 	return err
 }
 
-func (r *UserRepository) GetUserByEmail(email string) (*model.User, error) {
-	query := `
-		SELECT id, email, password_hash, role, created_at
-		FROM users
-		WHERE email = $1
-	`
-
+func (r *UserRepository) GetUserByEmail(email string) (model.User, error) {
 	var user model.User
 
-	err := r.DB.QueryRow(
+	query := `
+		SELECT id, username, email, password, role
+		FROM users
+		WHERE email=$1
+	`
+
+	err := r.conn.QueryRow(
 		context.Background(),
 		query,
 		email,
 	).Scan(
 		&user.ID,
+		&user.Username,
 		&user.Email,
-		&user.PasswordHash,
+		&user.Password,
 		&user.Role,
-		&user.CreatedAt,
 	)
 
-	if err != nil {
-		return nil, err
-	}
-
-	return &user, nil
+	return user, err
 }
