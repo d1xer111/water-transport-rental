@@ -1,0 +1,63 @@
+basePath: /
+definitions:
+  model.Transport:
+    properties:
+      capacity:
+        type: integer
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      price_per_hour:
+        type: number
+    type: object
+host: localhost:8081
+info:
+  contact: {}
+  description: Water transport booking service
+  title: Booking Service API
+  version: "1.0"
+paths:
+  /transports:
+    get:
+      description: Get list of transports
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Transport'
+            type: array
+      summary: Get all transports
+      tags:
+      - transports
+    post:
+      consumes:
+      - application/json
+      description: Create new water transport
+      parameters:
+      - description: Transport
+        in: body
+        name: transport
+        required: true
+        schema:
+          $ref: '#/definitions/model.Transport'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create transport
+      tags:
+      - transports
+swagger: "2.0"
