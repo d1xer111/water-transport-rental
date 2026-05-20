@@ -3,9 +3,9 @@ package handler
 import (
 	"net/http"
 
-	"water-transport-rental/booking-service/internal/model"
-	"water-transport-rental/booking-service/internal/service"
-	"water-transport-rental/booking-service/internal/logger"
+	"github.com/d1xer111/water-transport-rental/booking-service/internal/model"
+	"github.com/d1xer111/water-transport-rental/booking-service/internal/service"
+	"github.com/d1xer111/water-transport-rental/booking-service/internal/logger"
 
 	"github.com/gin-gonic/gin"
 )

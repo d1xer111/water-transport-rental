@@ -3,8 +3,8 @@ package service
 import (
 	"testing"
 
-	"water-transport-rental/booking-service/internal/model"
-	"water-transport-rental/booking-service/internal/mocks"
+	"github.com/d1xer111/water-transport-rental/booking-service/internal/model"
+	"github.com/d1xer111/water-transport-rental/booking-service/internal/mocks"
 
 	"github.com/stretchr/testify/assert"
 )

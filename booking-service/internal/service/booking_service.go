@@ -1,8 +1,8 @@
 package service
 
 import (
-	"water-transport-rental/booking-service/internal/model"
-	"water-transport-rental/booking-service/internal/repository"
+	"github.com/d1xer111/water-transport-rental/booking-service/internal/model"
+	"github.com/d1xer111/water-transport-rental/booking-service/internal/repository"
 )
 
 type BookingService struct {

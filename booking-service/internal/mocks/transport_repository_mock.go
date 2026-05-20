@@ -1,7 +1,7 @@
 package mocks
 
 import (
-	"water-transport-rental/booking-service/internal/model"
+	"github.com/d1xer111/water-transport-rental/booking-service/internal/model"
 
 	"github.com/stretchr/testify/mock"
 )

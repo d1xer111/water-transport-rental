@@ -3,11 +3,11 @@ package main
 import (
 	"log"
 
-	"water-transport-rental/auth-service/internal/database"
-	"water-transport-rental/auth-service/internal/handler"
-	"water-transport-rental/auth-service/internal/middleware"
-	"water-transport-rental/auth-service/internal/repository"
-	"water-transport-rental/auth-service/internal/service"
+	"github.com/d1xer111/water-transport-rental/auth-service/internal/database"
+	"github.com/d1xer111/water-transport-rental/auth-service/internal/handler"
+	"github.com/d1xer111/water-transport-rental/auth-service/internal/middleware"
+	"github.com/d1xer111/water-transport-rental/auth-service/internal/repository"
+	"github.com/d1xer111/water-transport-rental/auth-service/internal/service"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"

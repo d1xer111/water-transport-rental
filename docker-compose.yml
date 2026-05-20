@@ -1,0 +1,53 @@
+services:
+
+  postgres:
+    image: postgres:17
+    container_name: water-postgres
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: water_transport
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile
+
+    container_name: auth-service
+
+    ports:
+      - "8080:8080"
+
+    environment:
+      DB_URL: postgres://postgres:postgres@postgres:5432/water_transport?sslmode=disable
+      JWT_SECRET: supersecret
+
+    depends_on:
+      - postgres
+
+  booking-service:
+    build:
+      context: .
+      dockerfile: booking-service/Dockerfile
+
+    container_name: booking-service
+
+    ports:
+      - "8081:8081"
+
+    environment:
+      DB_URL: postgres://postgres:postgres@postgres:5432/water_transport?sslmode=disable
+      JWT_SECRET: supersecret
+
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:

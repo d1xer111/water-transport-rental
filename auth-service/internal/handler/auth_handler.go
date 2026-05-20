@@ -3,8 +3,8 @@ package handler
 import (
 	"net/http"
 
-	"water-transport-rental/auth-service/internal/model"
-	"water-transport-rental/auth-service/internal/service"
+	"github.com/d1xer111/water-transport-rental/auth-service/internal/model"
+	"github.com/d1xer111/water-transport-rental/auth-service/internal/service"
 
 	"github.com/gin-gonic/gin"
 )

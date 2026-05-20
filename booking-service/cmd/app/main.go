@@ -8,14 +8,14 @@ package main
 import (
 	"log"
 
-	"water-transport-rental/booking-service/internal/database"
-	"water-transport-rental/booking-service/internal/handler"
-	"water-transport-rental/booking-service/internal/repository"
-	"water-transport-rental/booking-service/internal/service"
-	_ "water-transport-rental/booking-service/docs"
-	"water-transport-rental/booking-service/internal/logger"
-	"water-transport-rental/booking-service/internal/websocket"
-	"water-transport-rental/booking-service/internal/middleware"
+	"github.com/d1xer111/water-transport-rental/booking-service/internal/database"
+	"github.com/d1xer111/water-transport-rental/booking-service/internal/handler"
+	"github.com/d1xer111/water-transport-rental/booking-service/internal/repository"
+	"github.com/d1xer111/water-transport-rental/booking-service/internal/service"
+	_ "github.com/d1xer111/water-transport-rental/booking-service/docs"
+	"github.com/d1xer111/water-transport-rental/booking-service/internal/logger"
+	"github.com/d1xer111/water-transport-rental/booking-service/internal/websocket"
+	"github.com/d1xer111/water-transport-rental/booking-service/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"

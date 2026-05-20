@@ -5,9 +5,9 @@ import (
 
 	"strconv"
 
-	"water-transport-rental/booking-service/internal/model"
-	"water-transport-rental/booking-service/internal/service"
-	"water-transport-rental/booking-service/internal/websocket"
+	"github.com/d1xer111/water-transport-rental/booking-service/internal/model"
+	"github.com/d1xer111/water-transport-rental/booking-service/internal/service"
+	"github.com/d1xer111/water-transport-rental/booking-service/internal/websocket"
 
 	"github.com/gin-gonic/gin"
 )

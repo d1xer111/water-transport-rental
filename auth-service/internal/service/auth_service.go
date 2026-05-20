@@ -1,12 +1,12 @@
 package service
 
 import (
-	sharedjwt "water-transport-rental/pkg/jwt"
+	sharedjwt "github.com/d1xer111/water-transport-rental/pkg/jwt"
 
 	"errors"
 
-	"water-transport-rental/auth-service/internal/model"
-	"water-transport-rental/auth-service/internal/repository"
+	"github.com/d1xer111/water-transport-rental/auth-service/internal/model"
+	"github.com/d1xer111/water-transport-rental/auth-service/internal/repository"
 
 	"golang.org/x/crypto/bcrypt"
 )

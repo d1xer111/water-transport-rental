@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	sharedjwt "water-transport-rental/pkg/jwt"
+	sharedjwt "github.com/d1xer111/water-transport-rental/pkg/jwt"
 
 	"net/http"
 	"strings"

@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"water-transport-rental/booking-service/internal/model"
+	"github.com/d1xer111/water-transport-rental/booking-service/internal/model"
 
 	"github.com/jackc/pgx/v5"
 )
