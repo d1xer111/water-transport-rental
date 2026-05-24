@@ -3,8 +3,8 @@ package service
 import (
 	"testing"
 
-	"github.com/d1xer111/water-transport-rental/booking-service/internal/model"
-	"github.com/d1xer111/water-transport-rental/booking-service/internal/mocks"
+	"github.com/d1xer111/water-transport-rental/booking-service/internal/domain"
+	"github.com/d1xer111/water-transport-rental/booking-service/mocks"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -14,7 +14,7 @@ func TestCreateTransport(t *testing.T) {
 
 	service := NewTransportService(mockRepo)
 
-	transport := model.Transport{
+	transport := domain.Transport{
 		Name:         "Test Boat",
 		Description:  "Test",
 		PricePerHour: 100,
@@ -37,7 +37,7 @@ func TestGetAllTransports(t *testing.T) {
 
 	service := NewTransportService(mockRepo)
 
-	transports := []model.Transport{
+	transports := []domain.Transport{
 		{
 			ID:           1,
 			Name:         "Boat",

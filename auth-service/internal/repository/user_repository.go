@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/d1xer111/water-transport-rental/auth-service/internal/model"
+	"github.com/d1xer111/water-transport-rental/auth-service/internal/domain"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -17,7 +17,7 @@ func NewUserRepository(conn *pgx.Conn) *UserRepository {
 	}
 }
 
-func (r *UserRepository) CreateUser(user model.User) error {
+func (r *UserRepository) CreateUser(user domain.User) error {
 	query := `
 		INSERT INTO users (username, email, password, role)
 		VALUES ($1, $2, $3, $4)
@@ -35,13 +35,13 @@ func (r *UserRepository) CreateUser(user model.User) error {
 	return err
 }
 
-func (r *UserRepository) GetUserByEmail(email string) (model.User, error) {
-	var user model.User
+func (r *UserRepository) GetUserByEmail(email string) (domain.User, error) {
+	var user domain.User
 
 	query := `
 		SELECT id, username, email, password, role
 		FROM users
-		WHERE email=$1
+		WHERE email = $1
 	`
 
 	err := r.conn.QueryRow(

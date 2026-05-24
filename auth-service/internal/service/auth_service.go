@@ -1,27 +1,24 @@
 package service
 
 import (
-	sharedjwt "github.com/d1xer111/water-transport-rental/pkg/jwt"
-
 	"errors"
 
-	"github.com/d1xer111/water-transport-rental/auth-service/internal/model"
+	"github.com/d1xer111/water-transport-rental/auth-service/internal/domain"
 	"github.com/d1xer111/water-transport-rental/auth-service/internal/repository"
-
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService struct {
-	repo *repository.UserRepository
+	userRepo *repository.UserRepository
 }
 
-func NewAuthService(repo *repository.UserRepository) *AuthService {
+func NewAuthService(userRepo *repository.UserRepository) *AuthService {
 	return &AuthService{
-		repo: repo,
+		userRepo: userRepo,
 	}
 }
 
-func (s *AuthService) Register(req model.RegisterRequest) error {
+func (s *AuthService) Register(req domain.RegisterRequest) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword(
 		[]byte(req.Password),
 		bcrypt.DefaultCost,
@@ -31,39 +28,31 @@ func (s *AuthService) Register(req model.RegisterRequest) error {
 		return err
 	}
 
-	user := model.User{
-		Email:        req.Email,
-		PasswordHash: string(hashedPassword),
-		Role:         "user",
+	user := domain.User{
+		Username: req.Username,
+		Email:    req.Email,
+		Password: string(hashedPassword),
+		Role:     "user",
 	}
 
-	return s.repo.CreateUser(user)
+	return s.userRepo.CreateUser(user)
 }
 
-func (s *AuthService) Login(req model.LoginRequest) (string, error) {
-	user, err := s.repo.GetUserByEmail(req.Email)
+func (s *AuthService) Login(req domain.LoginRequest) (domain.User, error) {
+	user, err := s.userRepo.GetUserByEmail(req.Email)
 
 	if err != nil {
-		return "", errors.New("invalid email or password")
+		return domain.User{}, errors.New("invalid email")
 	}
 
 	err = bcrypt.CompareHashAndPassword(
-		[]byte(user.PasswordHash),
+		[]byte(user.Password),
 		[]byte(req.Password),
 	)
 
 	if err != nil {
-		return "", errors.New("invalid email or password")
+		return domain.User{}, errors.New("invalid password")
 	}
 
-	token, err := sharedjwt.GenerateToken(
-	user.ID,
-	user.Role,
-)
-
-	if err != nil {
-		return "", err
-	}
-
-	return token, nil
+	return user, nil
 }

@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/d1xer111/water-transport-rental/booking-service/internal/model"
+	"github.com/d1xer111/water-transport-rental/booking-service/internal/domain"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -18,7 +18,7 @@ func NewTransportRepository(db *pgx.Conn) *TransportRepository {
 	}
 }
 
-func (r *TransportRepository) CreateTransport(t model.Transport) error {
+func (r *TransportRepository) CreateTransport(t domain.Transport) error {
 	query := `
 		INSERT INTO transports
 		(name, description, price_per_hour, capacity)
@@ -37,7 +37,7 @@ func (r *TransportRepository) CreateTransport(t model.Transport) error {
 	return err
 }
 
-func (r *TransportRepository) GetAllTransports() ([]model.Transport, error) {
+func (r *TransportRepository) GetAllTransports() ([]domain.Transport, error) {
 	query := `
 		SELECT id, name, description,
 		price_per_hour, capacity, created_at
@@ -52,10 +52,10 @@ func (r *TransportRepository) GetAllTransports() ([]model.Transport, error) {
 
 	defer rows.Close()
 
-	var transports []model.Transport
+	var transports []domain.Transport
 
 	for rows.Next() {
-		var t model.Transport
+		var t domain.Transport
 
 		err := rows.Scan(
 			&t.ID,

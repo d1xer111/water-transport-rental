@@ -1,16 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
-function getRoleFromToken(token: string) {
-  try {
-    const payload = token.split(".")[1];
-    const decoded = JSON.parse(atob(payload));
-    return decoded.role;
-  } catch {
-    return "user";
-  }
-}
-
 export default function Login() {
   const navigate = useNavigate();
 
@@ -38,16 +28,11 @@ export default function Login() {
         throw new Error("Ошибка входа");
       }
 
-      const token = data.token;
+      localStorage.setItem("username", data.username);
+      localStorage.setItem("role", data.role);
 
-      localStorage.setItem("token", token);
-
-      const role = getRoleFromToken(token);
-
-      localStorage.setItem("role", role);
-
-      if (role === "admin") {
-        navigate("/admin ");
+      if (data.role === "admin") {
+        navigate("/admin");
       } else {
         navigate("/profile");
       }
@@ -120,68 +105,12 @@ export default function Login() {
               </div>
             </label>
 
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 text-gray-600">
-                <input type="checkbox" />
-                Запомнить меня
-              </label>
-
-              <button
-                type="button"
-                className="text-blue-700 font-medium"
-              >
-                Забыли пароль?
-              </button>
-            </div>
-
             <button className="w-full h-14 bg-blue-700 hover:bg-blue-800 text-white rounded-xl font-semibold text-lg transition">
               Войти
             </button>
           </div>
-
-          <div className="flex items-center gap-4 my-8 text-gray-500 text-sm">
-            <div className="h-px bg-gray-200 flex-1" />
-            или продолжить с
-            <div className="h-px bg-gray-200 flex-1" />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <button type="button" className="border rounded-xl py-3 font-semibold">
-              🇬 Google
-            </button>
-
-            <button type="button" className="border rounded-xl py-3 font-semibold">
-              🍎 Apple
-            </button>
-          </div>
-
-          <p className="text-center mt-9 text-lg">
-            Нет аккаунта?{" "}
-            <Link to="/register" className="text-blue-700 font-semibold">
-              Зарегистрироваться
-            </Link>
-          </p>
         </form>
       </main>
-
-      <footer className="bg-white border-t px-12 py-10 flex justify-between items-start">
-        <div>
-          <h2 className="text-2xl font-bold mb-5">
-            АРЕНДА ВОДНОГО ТРАНСПОРТА
-          </h2>
-
-          <p className="text-gray-600">
-            © 2024 Аренда водного транспорта. Все права защищены.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 gap-x-10 gap-y-4 text-gray-700 text-lg">
-          <a>Политика конфиденциальности</a>
-          <a>Условия использования</a>
-          <a>Каталог транспорта</a>
-          <a>Служба поддержки</a>
-        </div>
-      </footer>
     </div>
   );
 }

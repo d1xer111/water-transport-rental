@@ -1,55 +1,60 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 
-	"github.com/d1xer111/water-transport-rental/auth-service/internal/database"
-	"github.com/d1xer111/water-transport-rental/auth-service/internal/handler"
-	"github.com/d1xer111/water-transport-rental/auth-service/internal/middleware"
+	"github.com/d1xer111/water-transport-rental/auth-service/internal/delivery"
 	"github.com/d1xer111/water-transport-rental/auth-service/internal/repository"
 	"github.com/d1xer111/water-transport-rental/auth-service/internal/service"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"github.com/gin-contrib/cors"
 )
 
 func main() {
-	err := godotenv.Load(".env")
+	log.Println("auth-service starting")
 
+	err := godotenv.Load(".env")
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal("auth-service failed to load .env file:", err)
 	}
 
+	log.Println("auth-service env loaded")
 	log.Println("DB_HOST =", os.Getenv("DB_HOST"))
 	log.Println("DB_PORT =", os.Getenv("DB_PORT"))
 	log.Println("DB_USER =", os.Getenv("DB_USER"))
 	log.Println("DB_NAME =", os.Getenv("DB_NAME"))
 
-	conn, err := database.ConnectDB()
-
+	conn, err := repository.ConnectDB()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("auth-service database connection failed:", err)
 	}
 
-	defer conn.Close(nil)
+	log.Println("auth-service database connected")
+
+	defer func() {
+		log.Println("auth-service database connection closing")
+		conn.Close(context.Background())
+	}()
 
 	userRepo := repository.NewUserRepository(conn)
-
 	authService := service.NewAuthService(userRepo)
-
-	authHandler := handler.NewAuthHandler(authService)
+	authHandler := delivery.NewAuthHandler(authService)
 
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
-    AllowOrigins: []string{"http://localhost:5173"},
-    AllowMethods: []string{"GET", "POST", "PUT", "DELETE"},
-    AllowHeaders: []string{"Origin", "Content-Type", "Authorization"},
-}))
+		AllowOrigins: []string{"http://localhost:5173"},
+		AllowMethods: []string{"GET", "POST", "PUT", "DELETE"},
+		AllowHeaders: []string{"Origin", "Content-Type", "Authorization"},
+	}))
 
 	r.GET("/ping", func(c *gin.Context) {
+		log.Println("auth-service ping request received")
+
 		c.JSON(200, gin.H{
 			"message": "pong",
 		})
@@ -62,9 +67,11 @@ func main() {
 	}
 
 	protected := r.Group("/api")
-	protected.Use(middleware.AuthMiddleware())
+	protected.Use(delivery.AuthMiddleware())
 	{
 		protected.GET("/profile", func(c *gin.Context) {
+			log.Println("auth-service profile request received")
+
 			userID, _ := c.Get("user_id")
 			role, _ := c.Get("role")
 
@@ -75,5 +82,9 @@ func main() {
 		})
 	}
 
-	r.Run(":8080")
+	log.Println("auth-service HTTP server started on port 8080")
+
+	if err := r.Run(":8080"); err != nil {
+		log.Fatal("auth-service HTTP server failed:", err)
+	}
 }

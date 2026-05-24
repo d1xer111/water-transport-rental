@@ -30,9 +30,12 @@ export default function Register() {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error("Ошибка регистрации");
-      }
+      const data = await response.json();
+
+if (!response.ok) {
+  alert(data.error || "Ошибка регистрации");
+  return;
+}
 
       navigate("/login");
     } catch {

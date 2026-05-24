@@ -6,16 +6,13 @@
 package main
 
 import (
+	"context"
 	"log"
 
-	"github.com/d1xer111/water-transport-rental/booking-service/internal/database"
-	"github.com/d1xer111/water-transport-rental/booking-service/internal/handler"
+	_ "github.com/d1xer111/water-transport-rental/booking-service/docs"
+	"github.com/d1xer111/water-transport-rental/booking-service/internal/delivery"
 	"github.com/d1xer111/water-transport-rental/booking-service/internal/repository"
 	"github.com/d1xer111/water-transport-rental/booking-service/internal/service"
-	_ "github.com/d1xer111/water-transport-rental/booking-service/docs"
-	"github.com/d1xer111/water-transport-rental/booking-service/internal/logger"
-	"github.com/d1xer111/water-transport-rental/booking-service/internal/websocket"
-	"github.com/d1xer111/water-transport-rental/booking-service/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -25,69 +22,73 @@ import (
 )
 
 func main() {
-	logger.InitLogger()
-
-	defer logger.Log.Sync()
+	log.Println("booking-service starting")
 
 	err := godotenv.Load(".env")
-
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal("booking-service failed to load .env file:", err)
 	}
 
-	conn, err := database.ConnectDB()
+	log.Println("booking-service env loaded")
 
+	conn, err := repository.ConnectDB()
 	if err != nil {
-		log.Fatal("Database connection failed")
+		log.Fatal("booking-service database connection failed:", err)
 	}
 
-	defer conn.Close(nil)
+	log.Println("booking-service database connected")
+
+	defer func() {
+		log.Println("booking-service database connection closing")
+		conn.Close(context.Background())
+	}()
 
 	transportRepo := repository.NewTransportRepository(conn)
-
 	transportService := service.NewTransportService(transportRepo)
-
-	transportHandler := handler.NewTransportHandler(transportService)
+	transportHandler := delivery.NewTransportHandler(transportService)
 
 	bookingRepo := repository.NewBookingRepository(conn)
-
 	bookingService := service.NewBookingService(bookingRepo)
-
-	bookingHandler := handler.NewBookingHandler(bookingService)
+	bookingHandler := delivery.NewBookingHandler(bookingService)
 
 	r := gin.Default()
 
-	go websocket.HandleMessages()
+	go delivery.HandleMessages()
+	log.Println("booking-service websocket message handler started")
 
 	r.GET("/ping", func(c *gin.Context) {
+		log.Println("booking-service ping request received")
+
 		c.JSON(200, gin.H{
 			"message": "booking service working",
 		})
 	})
 
-	r.GET("/ws", websocket.HandleConnections)
+	r.GET("/ws", delivery.HandleConnections)
 
 	r.POST("/transports", transportHandler.CreateTransport)
-
 	r.GET("/transports", transportHandler.GetAllTransports)
 
 	r.POST("/bookings", bookingHandler.CreateBooking)
-
 	r.GET("/bookings", bookingHandler.GetAllBookings)
 
 	r.PATCH(
-	"/bookings/:id/approve",
-	middleware.AdminOnly(),
-	bookingHandler.ApproveBooking,
+		"/bookings/:id/approve",
+		delivery.AdminOnly(),
+		bookingHandler.ApproveBooking,
 	)
 
 	r.PATCH(
-	"/bookings/:id/reject",
-	middleware.AdminOnly(),
-	bookingHandler.RejectBooking,
+		"/bookings/:id/reject",
+		delivery.AdminOnly(),
+		bookingHandler.RejectBooking,
 	)
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	r.Run(":8081")
+	log.Println("booking-service HTTP server started on port 8081")
+
+	if err := r.Run(":8081"); err != nil {
+		log.Fatal("booking-service HTTP server failed:", err)
+	}
 }

@@ -24,7 +24,7 @@ export default function Profile() {
 
             <div>
               <h2 className="text-2xl font-bold leading-tight">
-                Алекс
+                {username}
               </h2>
               <p className="text-sm mt-2">Премиум участник</p>
             </div>

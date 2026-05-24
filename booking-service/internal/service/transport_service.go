@@ -1,12 +1,12 @@
 package service
 
 import (
-	"github.com/d1xer111/water-transport-rental/booking-service/internal/model"
+	"github.com/d1xer111/water-transport-rental/booking-service/internal/domain"
 )
 
 type TransportRepositoryInterface interface {
-	CreateTransport(t model.Transport) error
-	GetAllTransports() ([]model.Transport, error)
+	CreateTransport(t domain.Transport) error
+	GetAllTransports() ([]domain.Transport, error)
 }
 
 type TransportService struct {
@@ -23,14 +23,14 @@ func NewTransportService(
 }
 
 func (s *TransportService) CreateTransport(
-	t model.Transport,
+	t domain.Transport,
 ) error {
 
 	return s.repo.CreateTransport(t)
 }
 
 func (s *TransportService) GetAllTransports() (
-	[]model.Transport,
+	[]domain.Transport,
 	error,
 ) {
 

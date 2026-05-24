@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/d1xer111/water-transport-rental/booking-service/internal/model"
+	"github.com/d1xer111/water-transport-rental/booking-service/internal/domain"
 	"github.com/d1xer111/water-transport-rental/booking-service/internal/repository"
 )
 
@@ -15,7 +15,7 @@ func NewBookingService(repo *repository.BookingRepository) *BookingService {
 	}
 }
 
-func (s *BookingService) CreateBooking(b model.Booking) error {
+func (s *BookingService) CreateBooking(b domain.Booking) error {
 	if b.Status == "" {
 		b.Status = "pending"
 	}
@@ -23,7 +23,7 @@ func (s *BookingService) CreateBooking(b model.Booking) error {
 	return s.repo.CreateBooking(b)
 }
 
-func (s *BookingService) GetAllBookings() ([]model.Booking, error) {
+func (s *BookingService) GetAllBookings() ([]domain.Booking, error) {
 	return s.repo.GetAllBookings()
 }
 
