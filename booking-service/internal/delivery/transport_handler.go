@@ -26,7 +26,7 @@ func NewTransportHandler(service *service.TransportService) *TransportHandler {
 // @Tags transports
 // @Accept json
 // @Produce json
-// @Param transport body model.Transport true "Transport"
+// @Param transport body domain.Transport true "Transport"
 // @Success 201 {object} map[string]string
 // @Router /transports [post]
 func (h *TransportHandler) CreateTransport(c *gin.Context) {
@@ -60,7 +60,7 @@ func (h *TransportHandler) CreateTransport(c *gin.Context) {
 // @Description Get list of transports
 // @Tags transports
 // @Produce json
-// @Success 200 {array} model.Transport
+// @Success 200 {array} domain.Transport
 // @Router /transports [get]
 func (h *TransportHandler) GetAllTransports(c *gin.Context) {
 	transports, err := h.service.GetAllTransports()

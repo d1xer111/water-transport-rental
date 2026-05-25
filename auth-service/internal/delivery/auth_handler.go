@@ -19,6 +19,17 @@ func NewAuthHandler(authService *service.AuthService) *AuthHandler {
 	}
 }
 
+// Register godoc
+// @Summary Register user
+// @Description Creates a new user account
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param user body domain.RegisterRequest true "Register data"
+// @Success 201 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /auth/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req domain.RegisterRequest
 
@@ -50,6 +61,17 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	})
 }
 
+// Login godoc
+// @Summary Login user
+// @Description Authenticates user by email and password
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param user body domain.LoginRequest true "Login data"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Router /auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req domain.LoginRequest
 

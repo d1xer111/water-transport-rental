@@ -1,6 +1,23 @@
 basePath: /
 definitions:
-  model.Transport:
+  domain.Booking:
+    properties:
+      booking_date:
+        type: string
+      created_at:
+        type: string
+      hours:
+        type: integer
+      id:
+        type: integer
+      status:
+        type: string
+      transport_id:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  domain.Transport:
     properties:
       capacity:
         type: integer
@@ -22,6 +39,79 @@ info:
   title: Booking Service API
   version: "1.0"
 paths:
+  /bookings:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Booking'
+            type: array
+      summary: Get all bookings
+      tags:
+      - bookings
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Booking
+        in: body
+        name: booking
+        required: true
+        schema:
+          $ref: '#/definitions/domain.Booking'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create booking
+      tags:
+      - bookings
+  /bookings/{id}/approve:
+    patch:
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Approve booking
+      tags:
+      - bookings
+  /bookings/{id}/reject:
+    patch:
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Reject booking
+      tags:
+      - bookings
   /transports:
     get:
       description: Get list of transports
@@ -32,7 +122,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/model.Transport'
+              $ref: '#/definitions/domain.Transport'
             type: array
       summary: Get all transports
       tags:
@@ -47,7 +137,7 @@ paths:
         name: transport
         required: true
         schema:
-          $ref: '#/definitions/model.Transport'
+          $ref: '#/definitions/domain.Transport'
       produces:
       - application/json
       responses:

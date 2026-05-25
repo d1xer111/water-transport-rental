@@ -20,6 +20,14 @@ func NewBookingHandler(service *service.BookingService) *BookingHandler {
 	}
 }
 
+// CreateBooking godoc
+// @Summary Create booking
+// @Tags bookings
+// @Accept json
+// @Produce json
+// @Param booking body domain.Booking true "Booking"
+// @Success 201 {object} map[string]interface{}
+// @Router /bookings [post]
 func (h *BookingHandler) CreateBooking(c *gin.Context) {
 	var booking domain.Booking
 
@@ -53,6 +61,12 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 	})
 }
 
+// GetAllBookings godoc
+// @Summary Get all bookings
+// @Tags bookings
+// @Produce json
+// @Success 200 {array} domain.Booking
+// @Router /bookings [get]
 func (h *BookingHandler) GetAllBookings(c *gin.Context) {
 	log.Println("booking-service get all bookings request received")
 
@@ -71,6 +85,13 @@ func (h *BookingHandler) GetAllBookings(c *gin.Context) {
 	c.JSON(http.StatusOK, bookings)
 }
 
+// ApproveBooking godoc
+// @Summary Approve booking
+// @Tags bookings
+// @Produce json
+// @Param id path int true "Booking ID"
+// @Success 200 {object} map[string]interface{}
+// @Router /bookings/{id}/approve [patch]
 func (h *BookingHandler) ApproveBooking(c *gin.Context) {
 	idParam := c.Param("id")
 
@@ -103,6 +124,13 @@ func (h *BookingHandler) ApproveBooking(c *gin.Context) {
 	})
 }
 
+// RejectBooking godoc
+// @Summary Reject booking
+// @Tags bookings
+// @Produce json
+// @Param id path int true "Booking ID"
+// @Success 200 {object} map[string]interface{}
+// @Router /bookings/{id}/reject [patch]
 func (h *BookingHandler) RejectBooking(c *gin.Context) {
 	idParam := c.Param("id")
 

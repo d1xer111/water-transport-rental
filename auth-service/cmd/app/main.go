@@ -1,3 +1,8 @@
+// @title Auth Service API
+// @version 1.0
+// @description Authentication service for water transport rental
+// @host localhost:8080
+// @BasePath /
 package main
 
 import (
@@ -5,17 +10,24 @@ import (
 	"log"
 	"os"
 
+	_ "github.com/d1xer111/water-transport-rental/auth-service/docs"
 	"github.com/d1xer111/water-transport-rental/auth-service/internal/delivery"
 	"github.com/d1xer111/water-transport-rental/auth-service/internal/repository"
 	"github.com/d1xer111/water-transport-rental/auth-service/internal/service"
+	"github.com/d1xer111/water-transport-rental/auth-service/pkg/logger"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func main() {
-	log.Println("auth-service starting")
+	logger.InitLogger()
+	defer logger.Log.Sync()
+	logger.Log.Info("auth-service starting")
 
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -81,6 +93,8 @@ func main() {
 			})
 		})
 	}
+
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	log.Println("auth-service HTTP server started on port 8080")
 
