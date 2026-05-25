@@ -10,6 +10,9 @@
 
 docker-data/
 
+node_modules/
+.env
+
 .idea/
 .vscode/
 
