@@ -2,14 +2,19 @@ package service
 
 import (
 	"github.com/d1xer111/water-transport-rental/booking-service/internal/domain"
-	"github.com/d1xer111/water-transport-rental/booking-service/internal/repository"
 )
 
-type BookingService struct {
-	repo *repository.BookingRepository
+type BookingRepositoryInterface interface {
+	CreateBooking(b domain.Booking) error
+	GetAllBookings() ([]domain.Booking, error)
+	UpdateBookingStatus(id int, status string) error
 }
 
-func NewBookingService(repo *repository.BookingRepository) *BookingService {
+type BookingService struct {
+	repo BookingRepositoryInterface
+}
+
+func NewBookingService(repo BookingRepositoryInterface) *BookingService {
 	return &BookingService{
 		repo: repo,
 	}

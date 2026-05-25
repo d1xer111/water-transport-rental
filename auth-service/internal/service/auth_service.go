@@ -4,15 +4,19 @@ import (
 	"errors"
 
 	"github.com/d1xer111/water-transport-rental/auth-service/internal/domain"
-	"github.com/d1xer111/water-transport-rental/auth-service/internal/repository"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type AuthService struct {
-	userRepo *repository.UserRepository
+type UserRepositoryInterface interface {
+	CreateUser(user domain.User) error
+	GetUserByEmail(email string) (domain.User, error)
 }
 
-func NewAuthService(userRepo *repository.UserRepository) *AuthService {
+type AuthService struct {
+	userRepo UserRepositoryInterface
+}
+
+func NewAuthService(userRepo UserRepositoryInterface) *AuthService {
 	return &AuthService{
 		userRepo: userRepo,
 	}
