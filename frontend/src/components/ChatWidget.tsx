@@ -9,6 +9,7 @@ export default function ChatWidget() {
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    if (!WS_URL) return
     const ws = new WebSocket(WS_URL)
     wsRef.current = ws
 
