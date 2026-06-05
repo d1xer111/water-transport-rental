@@ -29,12 +29,13 @@ func HandleConnections(c *gin.Context) {
 	clients[ws] = true
 
 	for {
-		_, _, err := ws.ReadMessage()
+		_, msg, err := ws.ReadMessage()
 
 		if err != nil {
 			delete(clients, ws)
 			break
 		}
+		broadcast <- string(msg)
 	}
 }
 

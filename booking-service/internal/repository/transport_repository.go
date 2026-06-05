@@ -5,14 +5,14 @@ import (
 
 	"github.com/d1xer111/water-transport-rental/booking-service/internal/domain"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type TransportRepository struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
-func NewTransportRepository(db *pgx.Conn) *TransportRepository {
+func NewTransportRepository(db *pgxpool.Pool) *TransportRepository {
 	return &TransportRepository{
 		db: db,
 	}
@@ -35,6 +35,14 @@ func (r *TransportRepository) CreateTransport(t domain.Transport) error {
 	)
 
 	return err
+}
+
+func (r *TransportRepository) DeleteAll() {
+	_, _ = r.db.Exec(context.Background(), "DELETE FROM transports")
+}
+
+func (r *TransportRepository) ResetSequence() {
+	_, _ = r.db.Exec(context.Background(), "ALTER SEQUENCE transports_id_seq RESTART WITH 1")
 }
 
 func (r *TransportRepository) GetAllTransports() ([]domain.Transport, error) {

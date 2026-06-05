@@ -22,14 +22,14 @@ func NewAuthService(userRepo UserRepositoryInterface) *AuthService {
 	}
 }
 
-func (s *AuthService) Register(req domain.RegisterRequest) error {
+func (s *AuthService) Register(req domain.RegisterRequest) (domain.User, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword(
 		[]byte(req.Password),
 		bcrypt.DefaultCost,
 	)
 
 	if err != nil {
-		return err
+		return domain.User{}, err
 	}
 
 	user := domain.User{
@@ -39,7 +39,12 @@ func (s *AuthService) Register(req domain.RegisterRequest) error {
 		Role:     "user",
 	}
 
-	return s.userRepo.CreateUser(user)
+	err = s.userRepo.CreateUser(user)
+	if err != nil {
+		return domain.User{}, err
+	}
+
+	return s.userRepo.GetUserByEmail(req.Email)
 }
 
 func (s *AuthService) Login(req domain.LoginRequest) (domain.User, error) {

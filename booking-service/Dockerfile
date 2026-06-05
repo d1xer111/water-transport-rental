@@ -1,4 +1,4 @@
-FROM golang:1.25.0
+FROM golang:1.26-alpine AS builder
 
 WORKDIR /app
 
@@ -9,7 +9,13 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o booking-service ./booking-service/cmd/app
+RUN go build -o booking-service ./cmd/app
+
+FROM alpine:latest
+
+WORKDIR /app
+
+COPY --from=builder /app/booking-service .
 
 EXPOSE 8081
 

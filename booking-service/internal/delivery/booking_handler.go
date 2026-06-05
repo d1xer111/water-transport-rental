@@ -82,6 +82,10 @@ func (h *BookingHandler) GetAllBookings(c *gin.Context) {
 
 	log.Println("booking-service get all bookings success")
 
+	if bookings == nil {
+		bookings = []domain.Booking{}
+	}
+
 	c.JSON(http.StatusOK, bookings)
 }
 

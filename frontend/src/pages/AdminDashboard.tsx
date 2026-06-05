@@ -1,223 +1,151 @@
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { bookingsApi, transportsApi, type Booking, type Transport } from "../services/api"
+import { useAuthStore } from "../store/authStore"
+import { useNotificationStore } from "../store/notificationStore"
 
 export default function AdminDashboard() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
+  const logout = useAuthStore((s) => s.logout)
+  const addToast = useNotificationStore((s) => s.addToast)
+  const [bookings, setBookings] = useState<Booking[]>([])
+  const [transports, setTransports] = useState<Transport[]>([])
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    navigate("/login");
-  };
+  useEffect(() => {
+    Promise.all([bookingsApi.getAll(), transportsApi.getAll()])
+      .then(([bRes, tRes]) => {
+        setBookings(bRes.data)
+        setTransports(tRes.data)
+      })
+      .catch(() => {})
+  }, [])
+
+  const pendingBookings = bookings.filter((b) => b.status === "pending")
+  const approvedBookings = bookings.filter((b) => b.status === "approved")
+
+  const handleApprove = async (id: number) => {
+    try {
+      await bookingsApi.approve(id)
+      setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: "approved" } : b)))
+      addToast("Бронирование одобрено", "success")
+    } catch {
+      addToast("Ошибка при одобрении", "error")
+    }
+  }
+
+  const handleReject = async (id: number) => {
+    try {
+      await bookingsApi.reject(id)
+      setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: "cancelled" } : b)))
+      addToast("Бронирование отклонено", "success")
+    } catch {
+      addToast("Ошибка при отклонении", "error")
+    }
+  }
+
+  const doLogout = () => {
+    logout()
+    navigate("/login")
+  }
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] text-[#111827] flex">
-      <aside className="w-[250px] bg-[#020817] text-white min-h-screen px-6 py-8 flex flex-col justify-between">
+    <div className="flex h-[calc(100vh-4rem)]">
+      <aside className="w-60 bg-gray-900 text-white p-6 shrink-0 flex flex-col justify-between">
         <div>
-            <img
-              src="https://i.pravatar.cc/100?img=13"
-              className="w-12 h-12 rounded-full"
-            />
-          <h1 className="text-2xl font-bold leading-tight">
-            Админ парка
-          </h1>
-
-          <p className="text-xs text-gray-400 mt-2 mb-10">
-            Системный контроллер
-          </p>
-
-          <nav className="space-y-3">
-            <button className="w-full bg-blue-700 px-5 py-4 rounded-xl text-left font-semibold">
-              ✦ Статистика
-            </button>
-
-            <button
-                onClick={() => navigate("/admin/fleet")}
-                className="w-full px-5 py-4 text-left text-gray-300"
-                >
-                ⛵ Управление флотом
-            </button>
-
-            <button
-                onClick={() => navigate("/admin/bookings")}
-                className="w-full px-5 py-4 text-left text-gray-300"
-                >
-                ▤ Все бронирования
-            </button>
-
+          <div className="flex items-center gap-3 mb-8">
+            <img src="https://i.pravatar.cc/100?img=13" className="w-10 h-10 rounded-full" />
+            <div>
+              <p className="font-bold text-sm">Админ парка</p>
+              <p className="text-xs text-gray-400">Системный контроллер</p>
+            </div>
+          </div>
+          <nav className="space-y-1">
+            {[
+              { label: "Статистика", active: true, onClick: () => {} },
+              { label: "Управление флотом", active: false, onClick: () => navigate("/admin/fleet") },
+              { label: "Все бронирования", active: false, onClick: () => navigate("/admin/bookings") },
+            ].map((item) => (
+              <button
+                key={item.label}
+                onClick={item.onClick}
+                className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-colors ${
+                  item.active ? "bg-blue-600 font-medium" : "text-gray-400 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
           </nav>
         </div>
-
-        <div>
-
-          <button
-            onClick={logout}
-            className="w-full px-5 py-4 text-left text-red-400"
-          >
-            ↪ Выйти
-          </button>
-        </div>
+        <button onClick={doLogout} className="text-sm text-red-400 hover:text-red-300 px-4 py-2 text-left">
+          Выйти
+        </button>
       </aside>
 
-      <main className="flex-1 px-10 py-10">
-        <h1 className="text-3xl font-bold mb-2">
-          Обзор панели управления
-        </h1>
+      <main className="flex-1 p-8 overflow-y-auto">
+        <h1 className="text-3xl font-bold mb-8">Обзор панели управления</h1>
 
-        <p className="text-gray-500 mb-8">
-          Мониторинг состояния системы и операций флота.
-        </p>
-
-        <div className="grid grid-cols-4 gap-6 mb-8">
-          <Stat title="Общая выручка" value="124.5к ₽" icon="💳" text="+12.5% за этот месяц" />
-          <Stat title="Новые пользователи" value="842" icon="👥" text="+5.2% за этот месяц" />
-          <Stat title="Активные аренды" value="156" icon="⛵" text="70% загрузка флота" />
-          <Stat title="Состояние системы" value="99.9%" icon="🛡️" text="Все сервисы работают" />
-        </div>
-
-        <div className="grid grid-cols-[1fr_280px] gap-8 mb-8">
-          <section className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex justify-between mb-6">
-              <h2 className="text-2xl font-bold">Тренды выручки</h2>
-              <button className="border px-4 py-2 rounded-lg text-sm">
-                Последние 30 дней
-              </button>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+          {[
+            { title: "Всего судов", value: transports.length.toString() },
+            { title: "Всего бронирований", value: bookings.length.toString() },
+            { title: "Подтверждено", value: approvedBookings.length.toString() },
+            { title: "В ожидании", value: pendingBookings.length.toString() },
+          ].map((stat) => (
+            <div key={stat.title} className="bg-white rounded-xl shadow-sm p-5">
+              <p className="text-xs font-semibold text-gray-500 uppercase mb-2">{stat.title}</p>
+              <p className="text-3xl font-bold">{stat.value}</p>
             </div>
-
-            <div className="h-[230px] border rounded-xl bg-gradient-to-t from-blue-100 to-white flex items-center justify-center text-gray-400">
-              / Интерактивная область графика /
-            </div>
-          </section>
-
-          <section className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-2xl font-bold mb-8">
-              Типы транспорта
-            </h2>
-
-            <div className="w-40 h-40 mx-auto rounded-full border-[18px] border-blue-700 border-r-gray-200 border-b-blue-400" />
-
-            <div className="flex justify-center gap-4 mt-8 text-xs">
-              <span>● Яхты</span>
-              <span>● Катера</span>
-              <span>● Парусники</span>
-            </div>
-          </section>
+          ))}
         </div>
 
         <section className="bg-white rounded-xl shadow-sm p-6">
-          <div className="flex justify-between mb-6">
-            <h2 className="text-2xl font-bold">
-              Последние запросы на бронирование
-            </h2>
-
-            <button className="text-blue-700 font-semibold">
-              Смотреть все →
-            </button>
-          </div>
-
-          <table className="w-full text-left">
-            <thead className="text-gray-500 text-sm">
-              <tr>
-                <th className="py-3">ID запроса</th>
-                <th>Клиент</th>
-                <th>Судно / Даты</th>
-                <th>Статус</th>
-                <th>Действия</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              <Row
-                id="#REQ-8902"
-                name="Джон Доу"
-                email="john.d@example.com"
-                boat="Oceanic Explorer"
-                date="12 окт - 15 окт, 2024"
-              />
-
-              <Row
-                id="#REQ-8901"
-                name="Сара Адамс"
-                email="s.adams@corporate.com"
-                boat="Azure Dream"
-                date="10 окт, 2024"
-              />
-            </tbody>
-          </table>
+          <h2 className="text-xl font-bold mb-6">
+            Запросы на бронирование ({pendingBookings.length})
+          </h2>
+          {pendingBookings.length === 0 ? (
+            <p className="text-gray-400 text-center py-8">Нет ожидающих запросов</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-gray-500 border-b">
+                    <th className="text-left py-3 font-medium">ID</th>
+                    <th className="text-left py-3 font-medium">ID транспорта</th>
+                    <th className="text-left py-3 font-medium">Дата</th>
+                    <th className="text-left py-3 font-medium">Часы</th>
+                    <th className="text-right py-3 font-medium">Действия</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pendingBookings.map((b) => (
+                    <tr key={b.id} className="border-b last:border-0">
+                      <td className="py-4 font-semibold">#{b.id}</td>
+                      <td className="py-4">#{b.transport_id}</td>
+                      <td className="py-4">{new Date(b.booking_date).toLocaleDateString("ru-RU")}</td>
+                      <td className="py-4">{b.hours} ч.</td>
+                      <td className="py-4 text-right space-x-2">
+                        <button
+                          onClick={() => handleApprove(b.id)}
+                          className="bg-green-50 text-green-700 px-4 py-1.5 rounded-lg text-xs font-medium hover:bg-green-100 transition-colors"
+                        >
+                          Одобрить
+                        </button>
+                        <button
+                          onClick={() => handleReject(b.id)}
+                          className="bg-red-50 text-red-700 px-4 py-1.5 rounded-lg text-xs font-medium hover:bg-red-100 transition-colors"
+                        >
+                          Отклонить
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
       </main>
     </div>
-  );
-}
-
-function Stat({
-  title,
-  value,
-  icon,
-  text,
-}: {
-  title: string;
-  value: string;
-  icon: string;
-  text: string;
-}) {
-  return (
-    <div className="bg-white rounded-xl shadow-sm p-6">
-      <div className="flex justify-between">
-        <p className="text-gray-500 uppercase text-sm font-semibold">
-          {title}
-        </p>
-        <span>{icon}</span>
-      </div>
-
-      <h2 className="text-4xl font-bold mt-4">{value}</h2>
-
-      <p className="text-green-700 text-sm mt-4">{text}</p>
-    </div>
-  );
-}
-
-function Row({
-  id,
-  name,
-  email,
-  boat,
-  date,
-}: {
-  id: string;
-  name: string;
-  email: string;
-  boat: string;
-  date: string;
-}) {
-  return (
-    <tr className="border-t">
-      <td className="py-5 font-semibold">{id}</td>
-
-      <td>
-        <div className="font-semibold">{name}</div>
-        <div className="text-gray-500 text-sm">{email}</div>
-      </td>
-
-      <td>
-        <div className="font-semibold">{boat}</div>
-        <div className="text-gray-500 text-sm">{date}</div>
-      </td>
-
-      <td>
-        <span className="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-full text-sm">
-          В ожидании
-        </span>
-      </td>
-
-      <td className="space-x-2">
-        <button className="bg-green-100 text-green-700 px-4 py-2 rounded-lg">
-          Одобрить
-        </button>
-
-        <button className="bg-red-100 text-red-700 px-4 py-2 rounded-lg">
-          Отклонить
-        </button>
-      </td>
-    </tr>
-  );
+  )
 }

@@ -1,144 +1,92 @@
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react"
+import { bookingsApi, transportsApi, type Booking, type Transport } from "../services/api"
 
 export default function MyBookings() {
-  const navigate = useNavigate();
+  const [bookings, setBookings] = useState<Booking[]>([])
+  const [transports, setTransports] = useState<Transport[]>([])
+  const [tab, setTab] = useState(0)
+
+  useEffect(() => {
+    Promise.all([bookingsApi.getAll(), transportsApi.getAll()])
+      .then(([bRes, tRes]) => {
+        setBookings(bRes.data || [])
+        setTransports(tRes.data)
+      })
+      .catch(() => {})
+  }, [])
+
+  const getTransportName = (id: number) => {
+    const t = transports.find((t) => t.id === id)
+    return t ? t.name : `Транспорт #${id}`
+  }
+
+  const all = bookings || []
+  const filtered =
+    tab === 0
+      ? all.filter((b) => b.status === "pending" || b.status === "approved")
+      : tab === 1
+        ? all.filter((b) => b.status === "pending")
+        : all.filter((b) => b.status === "cancelled" || b.status === "approved")
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] text-[#050816] flex">
-      <aside className="w-[280px] bg-white border-r min-h-screen px-6 py-8 flex flex-col justify-between">
-        <div>
-          <div className="flex gap-4 items-center mb-12">
-            <img
-              src="https://i.pravatar.cc/100"
-              className="w-14 h-14 rounded-full"
-            />
+    <div className="py-12 px-6">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-4xl font-bold mb-2">Мои бронирования</h1>
+        <p className="text-gray-500 mb-10">Управляйте вашими рейсами</p>
 
-            <div>
-              <h2 className="text-2xl font-bold leading-tight">
-                Алекс
-              </h2>
-              <p className="text-sm mt-2">Премиум участник</p>
-            </div>
-          </div>
-
-          <nav className="space-y-3">
-            <button onClick={() => navigate("/profile")} className="w-full px-5 py-4 text-left">▦ Обзор</button>
-            <button className="w-full bg-blue-100 text-blue-800 px-5 py-4 rounded-xl text-left font-semibold">⛵ Мои бронирования</button>
+        <div className="flex gap-6 border-b mb-8">
+          {[
+            `Активные (${all.filter((b) => b.status === "pending" || b.status === "approved").length})`,
+            `В ожидании (${all.filter((b) => b.status === "pending").length})`,
+            `Завершенные (${all.filter((b) => b.status !== "pending").length})`,
+          ].map((label, i) => (
             <button
-  onClick={() => navigate("/chat")}
-  className="w-full px-5 py-4 rounded-xl text-left"
->
-  ▤ Чат
-</button>
-          </nav>
+              key={label}
+              onClick={() => setTab(i)}
+              className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
+                i === tab ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
-        <button onClick={() => navigate("/login")} className="text-red-600 font-semibold text-left px-5 py-4">
-          ↪ Выйти
-        </button>
-      </aside>
-
-      <main className="flex-1 px-14 py-14">
-        <h1 className="text-5xl font-bold mb-3">Мои бронирования</h1>
-        <p className="text-gray-600 mb-10">
-          Управляйте вашими предстоящими рейсами и прошлыми приключениями.
-        </p>
-
-        <div className="flex gap-8 border-b mb-8 text-sm">
-          <button className="text-blue-700 border-b-2 border-blue-700 pb-3 font-semibold">
-            Активные (2)
-          </button>
-          <button className="pb-3">В ожидании (1)</button>
-          <button className="pb-3">Завершенные (12)</button>
-        </div>
-
-        <div className="space-y-7 max-w-5xl">
-          <BookingCard
-            image="https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?q=80&w=900&auto=format&fit=crop"
-            title="Яхта Морской Бриз"
-            date="12 Окт, 2024 - 14 Окт, 2024"
-            place="Майами Марина, Флорида"
-            guests="4 Гостя"
-            price="245 000 ₽"
-            status="Подтверждено"
-            active
-          />
-
-          <BookingCard
-            image="https://images.unsplash.com/photo-1540946485063-a40da27545f8?q=80&w=900&auto=format&fit=crop"
-            title="Береговой Катамаран"
-            date="05 Ноя, 2024 - 07 Ноя, 2024"
-            place="Гавань Нассау, Багамы"
-            guests="6 Гостей"
-            price="310 000 ₽"
-            status="В ожидании"
-          />
-        </div>
-      </main>
-    </div>
-  );
-}
-
-function BookingCard(props: {
-  image: string;
-  title: string;
-  date: string;
-  place: string;
-  guests: string;
-  price: string;
-  status: string;
-  active?: boolean;
-}) {
-  return (
-    <div className="bg-white rounded-xl shadow-sm p-6 flex gap-6 items-center">
-      <div className="relative">
-        <img src={props.image} className="w-36 h-40 object-cover rounded-lg" />
-        <span className="absolute bottom-2 left-2 bg-[#09233f] text-white text-xs px-2 py-1 rounded">
-          ★ 4.9
-        </span>
-      </div>
-
-      <div className="flex-1">
-        <div className="flex justify-between">
-          <h2 className="text-2xl font-bold">{props.title}</h2>
-          <span
-            className={`text-xs font-bold px-4 py-2 rounded-full ${
-              props.active ? "bg-blue-100 text-blue-700" : "bg-yellow-100 text-yellow-700"
-            }`}
-          >
-            {props.status}
-          </span>
-        </div>
-
-        <div className="text-gray-600 mt-3 space-y-2">
-          <p>▣ {props.date}</p>
-          <p>⊙ {props.place}</p>
-          <p>♙ {props.guests}</p>
-        </div>
-
-        <div className="flex items-center justify-between mt-8">
-          <div>
-            <p className="text-sm text-gray-500">Итого</p>
-            <p className="text-2xl font-bold">{props.price}</p>
+        {filtered.length === 0 ? (
+          <div className="text-center py-16 text-gray-400 text-lg">Нет бронирований</div>
+        ) : (
+          <div className="space-y-5">
+            {filtered.map((b) => (
+              <div key={b.id} className="bg-white rounded-xl shadow-sm p-6 flex flex-col sm:flex-row gap-6">
+                <div className="flex-1">
+                  <div className="flex items-start justify-between mb-3">
+                    <h2 className="text-xl font-bold">{getTransportName(b.transport_id)}</h2>
+                    <span
+                      className={`text-xs font-medium px-3 py-1 rounded-full ${
+                        b.status === "approved"
+                          ? "bg-green-50 text-green-700"
+                          : b.status === "cancelled"
+                            ? "bg-red-50 text-red-700"
+                            : "bg-yellow-50 text-yellow-700"
+                      }`}
+                    >
+                      {b.status === "approved"
+                        ? "Подтверждено"
+                        : b.status === "cancelled"
+                          ? "Отменено"
+                          : "В ожидании"}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-500 space-y-1 mb-4">
+                    <p>Дата: {new Date(b.booking_date).toLocaleDateString("ru-RU")}</p>
+                    <p>Длительность: {b.hours} ч.</p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-
-          <div className="flex gap-3">
-            {props.active ? (
-              <>
-                <button className="border px-8 py-3 rounded-lg font-semibold">Сообщение владельцу</button>
-                <button className="border px-8 py-3 rounded-lg font-semibold">Посмотреть квитанцию</button>
-                <button className="text-red-500 font-semibold">Отменить</button>
-              </>
-            ) : (
-              <>
-                <span className="text-xs text-gray-500 self-center">(Ожидает одобрения)</span>
-                <button className="border px-8 py-3 rounded-lg font-semibold">Сообщение владельцу</button>
-                <button className="text-red-500 font-semibold">Отменить запрос</button>
-              </>
-            )}
-          </div>
-        </div>
+        )}
       </div>
     </div>
-  );
+  )
 }

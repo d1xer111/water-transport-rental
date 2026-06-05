@@ -1,8 +1,3 @@
-// @title Auth Service API
-// @version 1.0
-// @description Authentication service for water transport rental
-// @host localhost:8080
-// @BasePath /
 package main
 
 import (
@@ -18,11 +13,28 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
+
+func autoMigrate(conn *pgx.Conn) {
+	query := `CREATE TABLE IF NOT EXISTS users (
+		id SERIAL PRIMARY KEY,
+		username VARCHAR(255) NOT NULL DEFAULT '',
+		email VARCHAR(255) UNIQUE NOT NULL,
+		password TEXT NOT NULL,
+		role VARCHAR(50) NOT NULL DEFAULT 'user',
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	)`
+	_, err := conn.Exec(context.Background(), query)
+	if err != nil {
+		log.Fatalf("migration failed: %v", err)
+	}
+	log.Println("auth-service migrations applied")
+}
 
 func main() {
 	logger.InitLogger()
@@ -52,6 +64,8 @@ func main() {
 		conn.Close(context.Background())
 	}()
 
+	autoMigrate(conn)
+
 	userRepo := repository.NewUserRepository(conn)
 	authService := service.NewAuthService(userRepo)
 	authHandler := delivery.NewAuthHandler(authService)
@@ -60,13 +74,12 @@ func main() {
 
 	r.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"http://localhost:5173"},
-		AllowMethods: []string{"GET", "POST", "PUT", "DELETE"},
+		AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders: []string{"Origin", "Content-Type", "Authorization"},
 	}))
 
 	r.GET("/ping", func(c *gin.Context) {
 		log.Println("auth-service ping request received")
-
 		c.JSON(200, gin.H{
 			"message": "pong",
 		})
@@ -83,10 +96,8 @@ func main() {
 	{
 		protected.GET("/profile", func(c *gin.Context) {
 			log.Println("auth-service profile request received")
-
 			userID, _ := c.Get("user_id")
 			role, _ := c.Get("role")
-
 			c.JSON(200, gin.H{
 				"user_id": userID,
 				"role":    role,

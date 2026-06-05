@@ -35,10 +35,18 @@ func TestRegisterSuccess(t *testing.T) {
 	}
 
 	repo.On("CreateUser", mock.AnythingOfType("domain.User")).Return(nil)
+	repo.On("GetUserByEmail", "admin@test.com").Return(domain.User{
+		ID:       1,
+		Username: "Admin",
+		Email:    "admin@test.com",
+		Role:     "user",
+	}, nil)
 
-	err := service.Register(req)
+	user, err := service.Register(req)
 
 	assert.NoError(t, err)
+	assert.Equal(t, "Admin", user.Username)
+	assert.Equal(t, "admin@test.com", user.Email)
 	repo.AssertExpectations(t)
 }
 
@@ -54,7 +62,7 @@ func TestRegisterRepositoryError(t *testing.T) {
 
 	repo.On("CreateUser", mock.AnythingOfType("domain.User")).Return(errors.New("db error"))
 
-	err := service.Register(req)
+	_, err := service.Register(req)
 
 	assert.Error(t, err)
 	repo.AssertExpectations(t)

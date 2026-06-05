@@ -5,14 +5,14 @@ import (
 
 	"github.com/d1xer111/water-transport-rental/booking-service/internal/domain"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type BookingRepository struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
-func NewBookingRepository(db *pgx.Conn) *BookingRepository {
+func NewBookingRepository(db *pgxpool.Pool) *BookingRepository {
 	return &BookingRepository{
 		db: db,
 	}

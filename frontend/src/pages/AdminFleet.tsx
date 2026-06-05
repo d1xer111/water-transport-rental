@@ -1,224 +1,172 @@
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { transportsApi, type Transport } from "../services/api"
+import { useAuthStore } from "../store/authStore"
+import { useNotificationStore } from "../store/notificationStore"
 
 export default function AdminFleet() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
+  const logout = useAuthStore((s) => s.logout)
+  const addToast = useNotificationStore((s) => s.addToast)
+  const [transports, setTransports] = useState<Transport[]>([])
+  const [showForm, setShowForm] = useState(false)
+  const [name, setName] = useState("")
+  const [description, setDescription] = useState("")
+  const [price, setPrice] = useState("")
+  const [capacity, setCapacity] = useState("")
+
+  useEffect(() => {
+    transportsApi.getAll().then(({ data }) => setTransports(data)).catch(() => {})
+  }, [])
+
+  const addTransport = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      await transportsApi.create({
+        name,
+        description,
+        price_per_hour: Number(price),
+        capacity: Number(capacity),
+      })
+      setName("")
+      setDescription("")
+      setPrice("")
+      setCapacity("")
+      setShowForm(false)
+      const { data } = await transportsApi.getAll()
+      setTransports(data)
+      addToast("Транспорт добавлен", "success")
+    } catch {
+      addToast("Ошибка при добавлении", "error")
+    }
+  }
+
+  const doLogout = () => {
+    logout()
+    navigate("/login")
+  }
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] text-[#111827] flex">
-      <aside className="w-[250px] bg-[#020817] text-white min-h-screen px-6 py-8 flex flex-col justify-between">
+    <div className="flex h-[calc(100vh-4rem)]">
+      <aside className="w-60 bg-gray-900 text-white p-6 shrink-0 flex flex-col justify-between">
         <div>
-            <img
-              src="https://i.pravatar.cc/100?img=13"
-              className="w-12 h-12 rounded-full"
-            />
-          <h1 className="text-2xl font-bold leading-tight">
-            Админ парка
-          </h1>
-
-          <p className="text-xs text-gray-400 mt-2 mb-10">
-            Системный контроллер
-          </p>
-
-          <nav className="space-y-3">
-            <button
-              onClick={() => navigate("/admin")}
-              className="w-full px-5 py-4 text-left text-gray-300"
-            >
-              ⌁ Статистика
-            </button>
-
-            <button className="w-full bg-blue-700 px-5 py-4 rounded-xl text-left font-semibold">
-              🚢 Управление флотом
-            </button>
-
-            <button
-                onClick={() => navigate("/admin/bookings")}
-                className="w-full px-5 py-4 text-left text-gray-300"
-                >
-                ▤ Все бронирования
-            </button>
-
+          <div className="flex items-center gap-3 mb-8">
+            <img src="https://i.pravatar.cc/100?img=13" className="w-10 h-10 rounded-full" />
+            <div>
+              <p className="font-bold text-sm">Админ парка</p>
+              <p className="text-xs text-gray-400">Системный контроллер</p>
+            </div>
+          </div>
+          <nav className="space-y-1">
+            {[
+              { label: "Статистика", onClick: () => navigate("/admin") },
+              { label: "Управление флотом", active: true, onClick: () => {} },
+              { label: "Все бронирования", onClick: () => navigate("/admin/bookings") },
+            ].map((item) => (
+              <button
+                key={item.label}
+                onClick={item.onClick}
+                className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-colors ${
+                  item.active ? "bg-blue-600 font-medium" : "text-gray-400 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
           </nav>
         </div>
-
-
+        <button onClick={doLogout} className="text-sm text-red-400 hover:text-red-300 px-4 py-2 text-left">
+          Выйти
+        </button>
       </aside>
 
-      <main className="flex-1 px-12 py-12">
-        <div className="flex justify-between items-start mb-10">
+      <main className="flex-1 p-8 overflow-y-auto">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-5xl font-bold mb-3">
-              Управление флотом
-            </h1>
-
-            <p className="text-gray-500">
-              Управляйте и отслеживайте весь активный транспорт.
-            </p>
+            <h1 className="text-3xl font-bold">Управление флотом</h1>
+            <p className="text-gray-500 text-sm mt-1">Всего судов: {transports.length}</p>
           </div>
-
-          <button className="bg-blue-700 text-white px-8 py-4 rounded-lg font-semibold shadow">
-            + Добавить новый транспорт
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-colors"
+          >
+            {showForm ? "Отмена" : "+ Добавить транспорт"}
           </button>
         </div>
 
-        <section className="bg-white rounded-xl shadow-sm p-5 mb-8">
-          <input
-            placeholder="🔍  Поиск по имени, типу или владельцу..."
-            className="w-full border rounded-lg px-5 py-4 outline-none mb-4"
-          />
-
-          <div className="flex gap-4">
-            <button className="border rounded-lg px-6 py-3 text-gray-600">
-              Все типы ⌄
+        {showForm && (
+          <form onSubmit={addTransport} className="bg-white rounded-xl shadow-sm p-6 mb-6 grid grid-cols-2 gap-4">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Название"
+              className="border border-gray-200 rounded-xl px-4 py-3 outline-none text-sm focus:border-blue-500"
+              required
+            />
+            <input
+              value={capacity}
+              onChange={(e) => setCapacity(e.target.value)}
+              type="number"
+              placeholder="Вместимость (чел.)"
+              className="border border-gray-200 rounded-xl px-4 py-3 outline-none text-sm focus:border-blue-500"
+              required
+            />
+            <input
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              type="number"
+              step="0.01"
+              placeholder="Цена за час (₽)"
+              className="border border-gray-200 rounded-xl px-4 py-3 outline-none text-sm focus:border-blue-500"
+              required
+            />
+            <input
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Описание"
+              className="border border-gray-200 rounded-xl px-4 py-3 outline-none text-sm focus:border-blue-500"
+            />
+            <button className="col-span-2 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-sm font-medium transition-colors">
+              Сохранить
             </button>
+          </form>
+        )}
 
-            <button className="border rounded-lg px-6 py-3 text-gray-600">
-              Все статусы ⌄
-            </button>
-
-            <button className="bg-gray-100 rounded-lg px-6 py-3 text-gray-700">
-              ≡ Больше фильтров
-            </button>
-          </div>
-        </section>
-
-        <section className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <table className="w-full text-left">
-            <thead className="text-gray-500 text-sm uppercase bg-gray-50">
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-gray-500">
               <tr>
-                <th className="px-6 py-5">Транспорт</th>
-                <th className="px-6 py-5">Владелец</th>
-                <th className="px-6 py-5">Доступность</th>
-                <th className="px-6 py-5">Статус</th>
-                <th className="px-6 py-5">Действия</th>
+                {["Название", "Описание", "Цена/час", "Вместимость", "Статус"].map((h) => (
+                  <th key={h} className="text-left px-6 py-4 font-medium">{h}</th>
+                ))}
               </tr>
             </thead>
-
             <tbody>
-              <FleetRow
-                image="https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?q=80&w=500&auto=format&fit=crop"
-                name="Ocean Breeze V"
-                type="Роскошная яхта • 85 футов"
-                owner="Elena Rodriguez"
-                email="elena.r@example.com"
-                active
-                status="Активен"
-              />
-
-              <FleetRow
-                image="https://images.unsplash.com/photo-1540946485063-a40da27545f8?q=80&w=500&auto=format&fit=crop"
-                name="Twin Sails"
-                type="Катамаран • 45 футов"
-                owner="Marcus Chen"
-                email="m.chen@marine.net"
-                status="Обслуживание"
-              />
-
-              <FleetRow
-                image="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=500&auto=format&fit=crop"
-                name="Silver Dart"
-                type="Катер • 28 футов"
-                owner="John Doe"
-                email="j.doe@example.com"
-                active
-                status="Активен"
-              />
+              {transports.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-10 text-center text-gray-400">
+                    Флот пуст. Добавьте первый транспорт.
+                  </td>
+                </tr>
+              ) : (
+                transports.map((t) => (
+                  <tr key={t.id} className="border-t">
+                    <td className="px-6 py-4 font-semibold">{t.name}</td>
+                    <td className="px-6 py-4 text-gray-500 max-w-xs truncate">{t.description}</td>
+                    <td className="px-6 py-4">{t.price_per_hour.toLocaleString()} ₽</td>
+                    <td className="px-6 py-4">{t.capacity} чел.</td>
+                    <td className="px-6 py-4">
+                      <span className="bg-green-50 text-green-700 text-xs font-medium px-3 py-1 rounded-full">
+                        ● Активен
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
-
-          <div className="px-6 py-5 flex justify-between items-center text-gray-500 text-sm">
-            <span>Показано от 1 до 3 из 42 записей</span>
-
-            <div className="flex gap-2">
-              <button className="border px-3 py-2 rounded">‹</button>
-              <button className="bg-blue-700 text-white px-4 py-2 rounded">1</button>
-              <button className="border px-4 py-2 rounded">2</button>
-              <button className="border px-4 py-2 rounded">3</button>
-              <button className="border px-3 py-2 rounded">›</button>
-            </div>
-          </div>
-        </section>
+        </div>
       </main>
     </div>
-  );
-}
-
-function FleetRow({
-  image,
-  name,
-  type,
-  owner,
-  email,
-  active,
-  status,
-}: {
-  image: string;
-  name: string;
-  type: string;
-  owner: string;
-  email: string;
-  active?: boolean;
-  status: string;
-}) {
-  return (
-    <tr className="border-t">
-      <td className="px-6 py-5">
-        <div className="flex items-center gap-4">
-          <img
-            src={image}
-            className="w-16 h-12 object-cover rounded-lg"
-          />
-
-          <div>
-            <p className="font-bold">{name}</p>
-            <p className="text-gray-500 text-sm">{type}</p>
-          </div>
-        </div>
-      </td>
-
-      <td className="px-6 py-5">
-        <div className="flex items-center gap-3">
-          <img
-            src="https://i.pravatar.cc/80"
-            className="w-10 h-10 rounded-full"
-          />
-
-          <div>
-            <p className="font-semibold">{owner}</p>
-            <p className="text-gray-500 text-sm">{email}</p>
-          </div>
-        </div>
-      </td>
-
-      <td className="px-6 py-5">
-        <div
-          className={`w-12 h-7 rounded-full p-1 ${
-            active ? "bg-blue-600" : "bg-gray-300"
-          }`}
-        >
-          <div
-            className={`w-5 h-5 bg-white rounded-full ${
-              active ? "ml-auto" : ""
-            }`}
-          />
-        </div>
-      </td>
-
-      <td className="px-6 py-5">
-        <span
-          className={`px-4 py-2 rounded-full text-sm font-semibold ${
-            status === "Активен"
-              ? "bg-green-100 text-green-700"
-              : "bg-red-100 text-red-700"
-          }`}
-        >
-          ● {status}
-        </span>
-      </td>
-
-      <td className="px-6 py-5 text-gray-400 text-2xl">
-        ⋯
-      </td>
-    </tr>
-  );
+  )
 }

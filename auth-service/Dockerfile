@@ -1,4 +1,4 @@
-FROM golang:1.25.0
+FROM golang:1.26-alpine AS builder
 
 WORKDIR /app
 
@@ -9,7 +9,13 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o auth-service ./auth-service/cmd/app
+RUN go build -o auth-service ./cmd/app
+
+FROM alpine:latest
+
+WORKDIR /app
+
+COPY --from=builder /app/auth-service .
 
 EXPOSE 8080
 
